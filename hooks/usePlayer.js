@@ -35,7 +35,14 @@ const usePlayer = (myId, roomId, peer) => {
         console.log("I toggled my video")
         setPlayers((prev) => {
             const copy = cloneDeep(prev)
-            copy[myId].playing = !copy[myId].playing
+              
+        // Asegurarse de que myId exista en copy
+        if (!copy[myId]) {
+            console.error(`Player with id ${myId} does not exist.`)
+            return prev; // No actualices el estado si myId no existe
+        }
+        
+            copy[myId].playing = !copy[myId]?.playing
             return {...copy}
         })
         socket.emit('user-toggle-video', myId, roomId)

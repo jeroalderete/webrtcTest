@@ -1,8 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
 import { useRouter } from 'next/navigation'
-
 import styles from '@/styles/home.module.css'
 import { useState } from 'react';
+
+
+// CONEXION DEL SOCKET DESDE EL LADO DEL CLIENTE
 
 export default function Home() {
   const router = useRouter()

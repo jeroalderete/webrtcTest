@@ -30,7 +30,27 @@ const Room = () => {
 
   const [users, setUsers] = useState([])
 
+
+
   useEffect(() => {
+
+
+
+
+    if (!stream || !myId) return;
+    console.log(`setting my stream ${myId}`);
+    setPlayers((prev) => ({
+       ...prev,
+       [myId]: {
+          url: stream,
+          muted: true,
+          playing: true,  // Asegúrate de que siempre inicializas estos valores
+       },
+    }));
+
+
+
+
     if (!socket || !peer || !stream) return;
     const handleUserConnected = (newUser) => {
       console.log(`user connected in room with userId ${newUser}`);
@@ -59,43 +79,52 @@ const Room = () => {
     return () => {
       socket.off("user-connected", handleUserConnected);
     };
-  }, [peer, setPlayers, socket, stream]);
+  }, [peer, setPlayers, socket, stream,myId]);
 
   useEffect(() => {
     if (!socket) return;
-    const handleToggleAudio = (userId) => {
-      console.log(`user with id ${userId} toggled audio`);
-      setPlayers((prev) => {
-        const copy = cloneDeep(prev);
-        copy[userId].muted = !copy[userId].muted;
-        return { ...copy };
-      });
-    };
 
-    const handleToggleVideo = (userId) => {
-      console.log(`user with id ${userId} toggled video`);
-      setPlayers((prev) => {
-        const copy = cloneDeep(prev);
-        copy[userId].playing = !copy[userId].playing;
-        return { ...copy };
-      });
-    };
 
-    const handleUserLeave = (userId) => {
-      console.log(`user ${userId} is leaving the room`);
-      users[userId]?.close()
-      const playersCopy = cloneDeep(players);
-      delete playersCopy[userId];
-      setPlayers(playersCopy);
-    }
-    socket.on("user-toggle-audio", handleToggleAudio);
-    socket.on("user-toggle-video", handleToggleVideo);
-    socket.on("user-leave", handleUserLeave);
-    return () => {
-      socket.off("user-toggle-audio", handleToggleAudio);
-      socket.off("user-toggle-video", handleToggleVideo);
-      socket.off("user-leave", handleUserLeave);
-    };
+const handleToggleAudio = (userId) => {
+   console.log(`user with id ${userId} toggled audio`);
+   setPlayers((prev) => {
+      const copy = cloneDeep(prev);
+      if (!copy[userId]) {
+         console.error(`Player with id ${userId} does not exist.`);
+         return prev; // Si no existe, retorna el estado anterior
+      }
+      copy[userId].muted = !copy[userId].muted;
+      return { ...copy };
+   });
+};
+
+const handleToggleVideo = (userId) => {
+  console.log(`user with id ${userId} toggled video`);
+  setPlayers((prev) => {
+     const copy = cloneDeep(prev);
+     if (!copy[userId]) {
+        console.error(`Player with id ${userId} does not exist.`);
+        return prev;
+     }
+     copy[userId].playing = !copy[userId]?.playing;
+     return { ...copy };
+  });
+};
+
+const handleUserLeave = (userId) => {
+  console.log(`user ${userId} is leaving the room`);
+  if (users[userId]) {
+     users[userId].close();
+  }
+  const playersCopy = cloneDeep(players);
+  delete playersCopy[userId];
+  setPlayers(playersCopy);
+  setUsers((prev) => {
+     const usersCopy = { ...prev };
+     delete usersCopy[userId];
+     return usersCopy;
+  });
+};
   }, [players, setPlayers, socket, users]);
 
   useEffect(() => {

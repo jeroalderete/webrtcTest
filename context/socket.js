@@ -8,16 +8,25 @@ export const useSocket = () => {
     return socket
 }
 
+
 export const SocketProvider = (props) => {
   const { children } = props;
   const [socket, setSocket] = useState(null);
 
+
+  
+
+
+  // establece la conexion el socket client
+
   useEffect(() => {
     const connection = io();
+    // debugeamos si se conecto bien o no - nos entrega un objeto Socket donde tenemos propiedades, connected tira false
     console.log("socket connection", connection)
     setSocket(connection);
   }, []);
 
+  // handling errors
   socket?.on('connect_error', async (err) => {
     console.log("Error establishing socket", err)
     await fetch('/api/socket')
